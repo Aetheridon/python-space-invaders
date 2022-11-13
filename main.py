@@ -5,22 +5,21 @@ import arcade
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Space Invaders"
+CHARACTER_SCALING = 1
 
 class Star:
     def __init__(self):
         self.x = 0
         self.y = 0
 
-    def reset_pos(self):
-        self.y = random.randrange(SCREEN_HEIGHT, SCREEN_HEIGHT + 100)
-        self.x = random.randrange(SCREEN_WIDTH)
-
 class SpaceInvader(arcade.Window):
-
     def __init__(self):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
         arcade.set_background_color(arcade.csscolor.BLACK)
+
         self.star_list = None
+        self.player_list = None
+        self.player_sprite = None
 
     def render_star(self):
         self.star_list = []
@@ -38,14 +37,21 @@ class SpaceInvader(arcade.Window):
         self.set_mouse_visible(False)
 
     def setup(self):
-        """Set up the game here. Call this function to restart the game."""
-        pass
+        self.player_list = arcade.SpriteList()
+
+        image_source = ":resources:images/space_shooter/playerShip1_orange.png"
+        self.player_sprite = arcade.Sprite(image_source, CHARACTER_SCALING)
+        self.player_sprite.center_x = SCREEN_WIDTH / 2
+        self.player_sprite.center_y = 50
+        self.player_list.append(self.player_sprite)
 
     def on_draw(self):
         self.clear()
 
         for star in self.star_list:
             arcade.draw_circle_filled(star.x, star.y, star.size, arcade.color.WHITE)
+
+        self.player_list.draw()
 
 def main():
     window = SpaceInvader()
