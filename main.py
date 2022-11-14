@@ -17,9 +17,11 @@ class SpaceInvader(arcade.Window):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
         arcade.set_background_color(arcade.csscolor.BLACK)
 
-        self.star_list = None
-        self.player_list = None
-        self.player_sprite = None
+        self.enemy_list = None # List for enemy ships
+        self.star_list = None # List for stars
+        self.player_list = None # Player sprite is appended to this list
+        self.player_sprite = None # Player sprite
+        self.enemy_sprite = None # Enemy sprite
 
     def render_star(self):
         self.star_list = []
@@ -37,13 +39,22 @@ class SpaceInvader(arcade.Window):
         self.set_mouse_visible(False)
 
     def setup(self):
+        ###### PLAYER SPRITE ######
         self.player_list = arcade.SpriteList()
-
-        image_source = ":resources:images/space_shooter/playerShip1_orange.png"
-        self.player_sprite = arcade.Sprite(image_source, CHARACTER_SCALING)
+        player_image_source = ":resources:images/space_shooter/playerShip1_orange.png"
+        self.player_sprite = arcade.Sprite(player_image_source, CHARACTER_SCALING)
         self.player_sprite.center_x = SCREEN_WIDTH / 2
         self.player_sprite.center_y = 50
         self.player_list.append(self.player_sprite)
+
+        ###### ENEMY SPRITE ######
+        self.enemy_list = arcade.SpriteList()
+        enemy_image_source = ":resources:images/space_shooter/playerShip3_orange.png"
+        self.enemy_sprite = arcade.Sprite(enemy_image_source, CHARACTER_SCALING)
+        self.enemy_sprite.center_x = 120
+        self.enemy_sprite.center_y = SCREEN_HEIGHT - self.enemy_sprite.height
+        self.enemy_sprite.angle = 200
+        self.enemy_list.append(self.enemy_sprite)
 
     def on_draw(self):
         self.clear()
@@ -52,6 +63,7 @@ class SpaceInvader(arcade.Window):
             arcade.draw_circle_filled(star.x, star.y, star.size, arcade.color.WHITE)
 
         self.player_list.draw()
+        self.enemy_list.draw()
 
 def main():
     window = SpaceInvader()
