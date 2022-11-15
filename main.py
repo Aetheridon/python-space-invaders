@@ -6,11 +6,27 @@ SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Space Invaders"
 CHARACTER_SCALING = 1
+MOVEMENT_SPEED = 5
 
 class Star:
     def __init__(self):
         self.x = 0
         self.y = 0
+
+class Player(arcade.Sprite):
+    def update(self):
+        self.center_x += self.change_x
+        self.center_y += self.change_y
+
+        if self.left < 0:
+            self.left = 0
+        elif self.right > SCREEN_WIDTH - 1:
+            self.right = SCREEN_WIDTH - 1
+
+        if self.bottom < 0:
+            self.bottom = 0
+        elif self.top > SCREEN_HEIGHT - 1:
+            self.top = SCREEN_HEIGHT - 1        
 
 class SpaceInvader(arcade.Window):
     def __init__(self):
@@ -64,6 +80,26 @@ class SpaceInvader(arcade.Window):
 
         self.player_list.draw()
         self.enemy_list.draw()
+
+    def on_update(self, delta_time):
+        self.player_list.update()
+
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.UP:
+            self.player_sprite.change_y = MOVEMENT_SPEED
+        elif key == arcade.key.DOWN:
+            self.player_sprite.change_y = -MOVEMENT_SPEED
+        elif key == arcade.key.LEFT:
+            self.player_sprite.change_x = -MOVEMENT_SPEED
+        elif key == arcade.key.RIGHT:
+            self.player_sprite.change_x = MOVEMENT_SPEED
+
+    def on_key_release(self, key, modifiers):
+        if key == arcade.key.UP or key == arcade.key.DOWN:
+            self.player_sprite.change_y = 0
+        elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
+            self.player_sprite.change_x = 0
+
 
 def main():
     window = SpaceInvader()
