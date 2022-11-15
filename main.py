@@ -1,4 +1,5 @@
 import random
+import math
 
 import arcade 
 
@@ -7,6 +8,7 @@ SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Space Invaders"
 CHARACTER_SCALING = 1
 MOVEMENT_SPEED = 5
+BULLET_SPEED = 10
 
 class Star:
     def __init__(self):
@@ -33,11 +35,14 @@ class SpaceInvader(arcade.Window):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
         arcade.set_background_color(arcade.csscolor.BLACK)
 
+        self.frame_count = 0
+
         self.enemy_list = None # List for enemy ships
         self.star_list = None # List for stars
         self.player_list = None # Player sprite is appended to this list
         self.player_sprite = None # Player sprite
         self.enemy_sprite = None # Enemy sprite
+        self.bullet_list = None # Bullet sprites
 
     def render_star(self):
         self.star_list = []
@@ -55,6 +60,8 @@ class SpaceInvader(arcade.Window):
         self.set_mouse_visible(False)
 
     def setup(self):
+        self.bullet_list = arcade.SpriteList()
+
         ###### PLAYER SPRITE ######
         self.player_list = arcade.SpriteList()
         player_image_source = ":resources:images/space_shooter/playerShip1_orange.png"
@@ -80,9 +87,42 @@ class SpaceInvader(arcade.Window):
 
         self.player_list.draw()
         self.enemy_list.draw()
+        self.bullet_list.draw()
 
     def on_update(self, delta_time):
         self.player_list.update()
+        self.frame_count += 1
+
+        for enemy in self.enemy_list:
+            start_x = enemy.center_x
+            start_y = enemy.center_y
+
+            dest_x = self.player_sprite.center_x
+            dest_y = self.player_sprite.center_y
+
+            x_diff = dest_x - start_x
+            y_diff = dest_y - start_y
+            angle = math.atan2(y_diff, x_diff)
+
+            enemy.angle = math.degrees(angle) - 90
+
+            if self.frame_count % 60 == 0:
+                bullet = arcade.Sprite(":resources:images/space_shooter/laserBlue01.png")
+                bullet.center_x = start_x
+                bullet.center_y = start_y
+
+                bullet.angle = math.degrees(angle)
+
+                bullet.change_x = math.cos(angle) * BULLET_SPEED
+                bullet.change_y = math.sin(angle) * BULLET_SPEED
+
+                self.bullet_list.append(bullet)
+
+        for bullet in self.bullet_list:
+            if bullet.top < 0:
+                bullet.remove_from_sprite_lists()
+
+        self.bullet_list.update()
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.UP:
