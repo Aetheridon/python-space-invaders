@@ -15,6 +15,10 @@ class Star:
         self.x = 0
         self.y = 0
 
+    def reset_pos(self):
+        self.y = random.randrange(SCREEN_HEIGHT, SCREEN_HEIGHT + 100)
+        self.x = random.randrange(SCREEN_WIDTH)
+
 class Player(arcade.Sprite):
     def update(self):
         self.center_x += self.change_x
@@ -54,6 +58,7 @@ class SpaceInvader(arcade.Window):
             star.y = random.randrange(SCREEN_HEIGHT + 200)
 
             star.size = random.randrange(4)
+            star.speed = random.randrange(20, 40)
 
             self.star_list.append(star)
 
@@ -93,6 +98,12 @@ class SpaceInvader(arcade.Window):
         self.player_list.update()
         self.frame_count += 1
 
+        for star in self.star_list:
+            star.y -= star.speed * delta_time
+
+            if star.y < 0:
+                star.reset_pos()
+
         for enemy in self.enemy_list:
             start_x = enemy.center_x
             start_y = enemy.center_y
@@ -117,7 +128,7 @@ class SpaceInvader(arcade.Window):
                 bullet.change_y = math.sin(angle) * BULLET_SPEED
 
                 self.bullet_list.append(bullet)
-
+                
         for bullet in self.bullet_list:
             if bullet.top < 0:
                 bullet.remove_from_sprite_lists()
