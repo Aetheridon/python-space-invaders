@@ -1,7 +1,9 @@
-import random
-import math
+"""Space Invaders!"""
 
-import arcade 
+import math
+import random
+
+import arcade
 
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 650
@@ -11,21 +13,33 @@ SCALE = 0.5
 MOVEMENT_SPEED = 5
 BULLET_SPEED = 10
 
-class TurningSprite(arcade.Sprite):
+
+class Bullet(arcade.Sprite):
+    """Generic class for bullets"""
+
     def update(self):
         super().update()
         self.angle = math.degrees(math.atan2(self.change_y, self.change_x))
 
+
 class Star:
+    """Generic class for the star sprites"""
+
     def __init__(self):
-        self.x = 0
-        self.y = 0
+        self.x = 0  # pylint: disable=C0103
+        self.y = 0  # pylint: disable=C0103
+        self.size = 0
+        self.speed = 0
 
     def reset_pos(self):
+        """reset the position of the star"""
         self.y = random.randrange(SCREEN_HEIGHT, SCREEN_HEIGHT + 100)
         self.x = random.randrange(SCREEN_WIDTH)
 
+
 class Player(arcade.Sprite):
+    """Generic class for the player"""
+
     def update(self):
         self.center_x += self.change_x
         self.center_y += self.change_y
@@ -38,26 +52,30 @@ class Player(arcade.Sprite):
         if self.bottom < 0:
             self.bottom = 0
         elif self.top > SCREEN_HEIGHT - 1:
-            self.top = SCREEN_HEIGHT - 1        
+            self.top = SCREEN_HEIGHT - 1
+
 
 class SpaceInvader(arcade.Window):
+    """A class to manage and control our game"""
+
     def __init__(self):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
         arcade.set_background_color(arcade.csscolor.BLACK)
 
         self.frame_count = 0
 
-        self.enemy_list = None # List for enemy ships
-        self.star_list = None # List for stars
-        self.player_list = None # Player sprite is appended to this list
-        self.player_sprite = None # Player sprite
-        self.enemy_sprite = None # Enemy sprite
-        self.bullet_list = None # Bullet sprites
+        self.enemy_list = None  # List for enemy ships
+        self.star_list = None  # List for stars
+        self.player_list = None  # Player sprite is appended to this list
+        self.player_sprite = None  # Player sprite
+        self.enemy_sprite = None  # Enemy sprite
+        self.bullet_list = None  # Bullet sprites
 
     def render_star(self):
+        """renders our star sprite"""
         self.star_list = []
 
-        for i in range(50):
+        for _ in range(50):
             star = Star()
 
             star.x = random.randrange(SCREEN_WIDTH)
@@ -71,6 +89,7 @@ class SpaceInvader(arcade.Window):
         self.set_mouse_visible(False)
 
     def setup(self):
+        """the initialisation function for starting a new game"""
         self.bullet_list = arcade.SpriteList()
 
         ###### PLAYER SPRITE ######
@@ -140,45 +159,55 @@ class SpaceInvader(arcade.Window):
                 bullet.remove_from_sprite_lists()
 
         self.bullet_list.update()
-        
-    def on_key_press(self, key, modifiers):
-        if key == arcade.key.SPACE:
-            bullet_sprite = TurningSprite(":resources:images/space_shooter/laserBlue01.png")
-            bullet_sprite.guid = "Bullet"
 
-            bullet_sprite.change_y = math.cos(math.radians(self.player_sprite.angle)) * BULLET_SPEED
-            bullet_sprite.change_y = math.cos(math.radians(self.player_sprite.angle)) * BULLET_SPEED
+    def handle_shoot(self):
+        """Handle the actions for user shooting event"""
+        bullet_sprite = Bullet(":resources:images/space_shooter/laserBlue01.png")
+        bullet_sprite.guid = "Bullet"
+        bullet_sprite.change_y = math.cos(math.radians(self.player_sprite.angle)) * BULLET_SPEED
+        bullet_sprite.change_y = math.cos(math.radians(self.player_sprite.angle)) * BULLET_SPEED
+        bullet_sprite.center_x = self.player_sprite.center_x
+        bullet_sprite.center_y = self.player_sprite.center_y
+        bullet_sprite.update()
+        for bullet in self.bullet_list:
+            if bullet.top < 0:
+                bullet.remove_from_sprite_lists()
+        self.bullet_list.append(bullet_sprite)
 
-            bullet_sprite.center_x = self.player_sprite.center_x
-            bullet_sprite.center_y = self.player_sprite.center_y
-            bullet_sprite.update()
-
-            for bullet in self.bullet_list:
-                if bullet.top < 0:
-                    bullet.remove_from_sprite_lists()
-
-            self.bullet_list.append(bullet_sprite)
-
-        if key == arcade.key.UP:
+    def handle_user_movement(self, symbol):
+        """Handle the action for user movement"""
+        if symbol == arcade.key.UP:
             self.player_sprite.change_y = MOVEMENT_SPEED
-        elif key == arcade.key.DOWN:
+        elif symbol == arcade.key.DOWN:
             self.player_sprite.change_y = -MOVEMENT_SPEED
-        elif key == arcade.key.LEFT:
+        elif symbol == arcade.key.LEFT:
             self.player_sprite.change_x = -MOVEMENT_SPEED
-        elif key == arcade.key.RIGHT:
+        elif symbol == arcade.key.RIGHT:
             self.player_sprite.change_x = MOVEMENT_SPEED
 
-    def on_key_release(self, key, modifiers):
-        if key == arcade.key.UP or key == arcade.key.DOWN:
+    def on_key_press(self, symbol, modifiers):
+        """generic event handler for key press"""
+        if symbol == arcade.key.SPACE:
+            self.handle_shoot()
+
+        if symbol in (arcade.key.UP, arcade.key.DOWN, arcade.key.LEFT, arcade.key.RIGHT):
+            self.handle_user_movement(symbol)
+
+    def on_key_release(self, symbol, modifiers):
+        """generic event handler for key release"""
+        if symbol == arcade.key.UP or symbol == arcade.key.DOWN:
             self.player_sprite.change_y = 0
-        elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
+        elif symbol == arcade.key.LEFT or symbol == arcade.key.RIGHT:
             self.player_sprite.change_x = 0
-            
+
+
 def main():
+    """main function where the magic happens"""
     window = SpaceInvader()
     window.setup()
     window.render_star()
     arcade.run()
+
 
 if __name__ == "__main__":
     main()
