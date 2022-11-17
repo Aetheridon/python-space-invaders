@@ -71,7 +71,7 @@ class SpaceInvader(arcade.Window):
         self.enemy_sprite = None  # Enemy sprite
         self.bullet_list = None  # Bullet sprites
 
-    def render_star(self):
+    def render_stars(self):
         """renders our star sprite"""
         self.star_list = []
 
@@ -205,7 +205,7 @@ def main():
     """main function where the magic happens"""
     window = SpaceInvader()
     window.setup()
-    window.render_star()
+    window.render_stars()
     arcade.run()
 
 
