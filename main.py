@@ -22,7 +22,6 @@ class Bullet(arcade.Sprite):
         super().update()
         self.angle = math.degrees(math.atan2(self.change_y, self.change_x))
 
-
 class Star:
     """Generic class for the star sprites"""
 
@@ -36,7 +35,6 @@ class Star:
         """reset the position of the star"""
         self.y = random.randrange(SCREEN_HEIGHT, SCREEN_HEIGHT + 100)
         self.x = random.randrange(SCREEN_WIDTH)
-
 
 class Player(arcade.Sprite):
     """Generic class for the player"""
@@ -52,7 +50,6 @@ class Player(arcade.Sprite):
             self.bottom = 0
         elif self.top > SCREEN_HEIGHT - 1:
             self.top = SCREEN_HEIGHT - 1
-
 
 class SpaceInvader(arcade.Window):
     """A class to manage and control our game"""
@@ -111,39 +108,44 @@ class SpaceInvader(arcade.Window):
         self.enemy_list.draw()
         self.bullet_list.draw()
 
-    def on_update(self, delta_time):
-        self.player_list.update()
-        self.frame_count += 1
+    def check_bullet_pos(self):
+         for bullet in self.bullet_list:
+            if bullet.top < 0:
+                bullet.remove_from_sprite_lists()
 
-        # move this to its own function
+    def check_star_pos(self, delta_time):
         for star in self.star_list:
             star.y -= star.speed * delta_time
             if star.y < 0:
                 star.reset_pos()
-        # move this to its own function
-        for enemy in self.enemy_list:
-            start_x = enemy.center_x
-            start_y = enemy.center_y
-            dest_x = self.player_sprite.center_x
-            dest_y = self.player_sprite.center_y
-            x_diff = dest_x - start_x
-            y_diff = dest_y - start_y
-            angle = math.atan2(y_diff, x_diff)
-            enemy.angle = math.degrees(angle) - 90
-            if self.frame_count % 60 == 0:
-                bullet = arcade.Sprite(":resources:images/space_shooter/laserBlue01.png")
-                bullet.center_x = start_x
-                bullet.center_y = start_y
-                bullet.angle = math.degrees(angle)
-                bullet.change_x = math.cos(angle) * BULLET_SPEED
-                bullet.change_y = math.sin(angle) * BULLET_SPEED
-                self.bullet_list.append(bullet)
-        # move this to its own function
-        for bullet in self.bullet_list:
-            if bullet.top < 0:
-                bullet.remove_from_sprite_lists()
-        self.bullet_list.update()
 
+    def enemy_shoot(self):
+            for enemy in self.enemy_list:
+                start_x = enemy.center_x
+                start_y = enemy.center_y
+                dest_x = self.player_sprite.center_x
+                dest_y = self.player_sprite.center_y
+                x_diff = dest_x - start_x
+                y_diff = dest_y - start_y
+                angle = math.atan2(y_diff, x_diff)
+                enemy.angle = math.degrees(angle) - 90
+                if self.frame_count % 60 == 0:
+                    bullet = arcade.Sprite(":resources:images/space_shooter/laserBlue01.png")
+                    bullet.center_x = start_x
+                    bullet.center_y = start_y
+                    bullet.angle = math.degrees(angle)
+                    bullet.change_x = math.cos(angle) * BULLET_SPEED
+                    bullet.change_y = math.sin(angle) * BULLET_SPEED
+                    self.bullet_list.append(bullet)
+                self.check_bullet_pos()
+            self.bullet_list.update()
+
+    def on_update(self, delta_time):
+        self.player_list.update()
+        self.frame_count += 1
+        self.enemy_shoot()
+        self.check_star_pos(delta_time)
+        
     def check_player_shoot(self):
         """Check if we have passed a small delta of allow time before the player is allowed to shoot"""
         print(f"{time.perf_counter() - self.player_last_shoot_time = }")
@@ -199,7 +201,6 @@ def main():
     window.setup()
     window.render_stars()
     arcade.run()
-
 
 if __name__ == "__main__":
     main()
