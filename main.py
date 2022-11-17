@@ -7,8 +7,14 @@ SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Space Invaders"
 CHARACTER_SCALING = 1
+SCALE = 0.5
 MOVEMENT_SPEED = 5
 BULLET_SPEED = 10
+
+class TurningSprite(arcade.Sprite):
+    def update(self):
+        super().update()
+        self.angle = math.degrees(math.atan2(self.change_y, self.change_x))
 
 class Star:
     def __init__(self):
@@ -128,14 +134,31 @@ class SpaceInvader(arcade.Window):
                 bullet.change_y = math.sin(angle) * BULLET_SPEED
 
                 self.bullet_list.append(bullet)
-                
+
         for bullet in self.bullet_list:
             if bullet.top < 0:
                 bullet.remove_from_sprite_lists()
 
         self.bullet_list.update()
-
+        
     def on_key_press(self, key, modifiers):
+        if key == arcade.key.SPACE:
+            bullet_sprite = TurningSprite(":resources:images/space_shooter/laserBlue01.png")
+            bullet_sprite.guid = "Bullet"
+
+            bullet_sprite.change_y = math.cos(math.radians(self.player_sprite.angle)) * BULLET_SPEED
+            bullet_sprite.change_y = math.cos(math.radians(self.player_sprite.angle)) * BULLET_SPEED
+
+            bullet_sprite.center_x = self.player_sprite.center_x
+            bullet_sprite.center_y = self.player_sprite.center_y
+            bullet_sprite.update()
+
+            for bullet in self.bullet_list:
+                if bullet.top < 0:
+                    bullet.remove_from_sprite_lists()
+
+            self.bullet_list.append(bullet_sprite)
+
         if key == arcade.key.UP:
             self.player_sprite.change_y = MOVEMENT_SPEED
         elif key == arcade.key.DOWN:
@@ -150,8 +173,7 @@ class SpaceInvader(arcade.Window):
             self.player_sprite.change_y = 0
         elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
             self.player_sprite.change_x = 0
-
-
+            
 def main():
     window = SpaceInvader()
     window.setup()
