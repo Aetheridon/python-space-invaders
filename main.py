@@ -162,9 +162,7 @@ class SpaceInvader(arcade.Window):
         bullet_sprite.center_x = self.player_sprite.center_x
         bullet_sprite.center_y = self.player_sprite.center_y
         bullet_sprite.update()
-        for bullet in self.bullet_list:
-            if bullet.top < 0:
-                bullet.remove_from_sprite_lists()
+        self.check_bullet_pos()
         self.bullet_list.append(bullet_sprite)
         self.player_last_shoot_time = time.perf_counter()
 
@@ -204,3 +202,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
