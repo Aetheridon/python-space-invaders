@@ -9,10 +9,10 @@ To run this program you must create a virtual environment and install the [arcad
 Linux:
 ```bash
 git clone https://github.com/stilte/python-space-invaders.git
-cd pythom-space-invaders
+cd python-space-invaders
 python3 -m venv venv
 source venv/bin/activate
-pip3 install arcade
+pip3 install -r requirements.txt
 python3 main.py
 ```
 ## Contributing
