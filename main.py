@@ -118,6 +118,16 @@ class SpaceInvader(arcade.Window):
             star.y -= star.speed * delta_time
             if star.y < 0:
                 star.reset_pos()
+    
+    def check_player_pos(self):
+        if self.player_sprite.center_y < 0:
+            self.player_sprite.change_y = MOVEMENT_SPEED
+        elif self.player_sprite.center_y > SCREEN_HEIGHT:
+            self.player_sprite.change_y = -MOVEMENT_SPEED
+        elif self.player_sprite.center_x < 0:
+            self.player_sprite.change_x = MOVEMENT_SPEED
+        elif self.player_sprite.center_x > SCREEN_WIDTH:
+            self.player_sprite.change_x = -MOVEMENT_SPEED
 
     def enemy_shoot(self):
             for enemy in self.enemy_list:
@@ -145,6 +155,7 @@ class SpaceInvader(arcade.Window):
         self.frame_count += 1
         self.enemy_shoot()
         self.check_star_pos(delta_time)
+        self.check_player_pos()
         
     def check_player_shoot(self):
         """Check if we have passed a small delta of allow time before the player is allowed to shoot"""
@@ -202,4 +213,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
