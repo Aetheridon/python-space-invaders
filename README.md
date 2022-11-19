@@ -19,3 +19,7 @@ python3 main.py
 
 Pull requests are allowed by anybody (this is FOSS after all.)
 For any issues or idea submissions go ahead and create a new issue with the appropriate tag
+
+## Pictures
+
+![alt text](https://github.com/stilte/python-space-invaders/blob/main/pic1.PNG)
