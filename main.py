@@ -1,3 +1,4 @@
+
 """Space Invaders!"""
 
 import math
@@ -15,16 +16,20 @@ MOVEMENT_SPEED = 5
 BULLET_SPEED = 10
 
 
-class Bullet(arcade.Sprite):
-    """Generic class for bullets"""
+class Player_Bullets(arcade.Sprite):
+    """ class for player bullets"""
+    def update(self):
+        super().update()
+        self.angle = math.degrees(math.atan2(self.change_y, self.change_x))
 
+class Enemy_Bullets(arcade.Sprite):
+    """class for enemy bullets"""
     def update(self):
         super().update()
         self.angle = math.degrees(math.atan2(self.change_y, self.change_x))
 
 class Star:
     """Generic class for the star sprites"""
-
     def __init__(self):
         self.x = 0  # pylint: disable=C0103
         self.y = 0  # pylint: disable=C0103
@@ -63,7 +68,8 @@ class SpaceInvader(arcade.Window):
         self.player_list = None  # Player sprite is appended to this list
         self.player_sprite = None  # Player sprite
         self.enemy_sprite = None  # Enemy sprite
-        self.bullet_list = None  # Bullet sprites
+        self.player_bullet_list = None  # Bullet sprites for player
+        self.enemy_bullet_list = None # Bullet sprites for enemy
         self.player_shoot_delta = 0.5
         self.player_last_shoot_time = 0
 
@@ -81,7 +87,8 @@ class SpaceInvader(arcade.Window):
 
     def setup(self):
         """the initialisation function for starting a new game"""
-        self.bullet_list = arcade.SpriteList()
+        self.player_bullet_list = arcade.SpriteList()
+        self.enemy_bullet_list = arcade.SpriteList()
 
         ###### PLAYER SPRITE ######
         self.player_list = arcade.SpriteList()
@@ -106,10 +113,16 @@ class SpaceInvader(arcade.Window):
             arcade.draw_circle_filled(star.x, star.y, star.size, arcade.color.WHITE)
         self.player_list.draw()
         self.enemy_list.draw()
-        self.bullet_list.draw()
+        self.player_bullet_list.draw()
+        self.enemy_bullet_list.draw()
 
-    def check_bullet_pos(self):
-         for bullet in self.bullet_list:
+    def check_player_bullet_pos(self):
+        for bullet in self.player_bullet_list:
+            if bullet.top < 0:
+                bullet.remove_from_sprite_lists()
+
+    def check_enemy_bullet_pos(self):
+        for bullet in self.enemy_bullet_list:
             if bullet.top < 0:
                 bullet.remove_from_sprite_lists()
 
@@ -119,6 +132,12 @@ class SpaceInvader(arcade.Window):
             if star.y < 0:
                 star.reset_pos()
     
+    def check_enemy_hit(self):
+        hit_list = arcade.check_for_collision_with_list(self.enemy_sprite, self.player_bullet_list)
+        for sprites in hit_list:
+            sprites.remove_from_sprite_lists()
+            self.enemy_sprite.remove_from_sprite_lists()
+
     def check_player_pos(self):
         if self.player_sprite.center_y < 0:
             self.player_sprite.change_y = MOVEMENT_SPEED
@@ -140,15 +159,14 @@ class SpaceInvader(arcade.Window):
                 angle = math.atan2(y_diff, x_diff)
                 enemy.angle = math.degrees(angle) - 90
                 if self.frame_count % 60 == 0:
-                    bullet = arcade.Sprite(":resources:images/space_shooter/laserBlue01.png")
+                    bullet = Enemy_Bullets(":resources:images/space_shooter/laserBlue01.png")
                     bullet.center_x = start_x
                     bullet.center_y = start_y
                     bullet.angle = math.degrees(angle)
                     bullet.change_x = math.cos(angle) * BULLET_SPEED
                     bullet.change_y = math.sin(angle) * BULLET_SPEED
-                    self.bullet_list.append(bullet)
-                self.check_bullet_pos()
-            self.bullet_list.update()
+                    self.enemy_bullet_list.append(bullet)
+                self.check_enemy_bullet_pos()
 
     def on_update(self, delta_time):
         self.player_list.update()
@@ -156,7 +174,10 @@ class SpaceInvader(arcade.Window):
         self.enemy_shoot()
         self.check_star_pos(delta_time)
         self.check_player_pos()
-        
+        self.player_bullet_list.update()
+        self.enemy_bullet_list.update()
+        self.check_enemy_hit()
+
     def check_player_shoot(self):
         """Check if we have passed a small delta of allow time before the player is allowed to shoot"""
         print(f"{time.perf_counter() - self.player_last_shoot_time = }")
@@ -166,15 +187,14 @@ class SpaceInvader(arcade.Window):
         """Handle the actions for user shooting event"""
         if not self.check_player_shoot():
             return
-        bullet_sprite = Bullet(":resources:images/space_shooter/laserBlue01.png")
+        bullet_sprite = Player_Bullets(":resources:images/space_shooter/laserBlue01.png")
         bullet_sprite.guid = "Bullet"
-        bullet_sprite.change_y = math.cos(math.radians(self.player_sprite.angle)) * BULLET_SPEED
         bullet_sprite.change_y = math.cos(math.radians(self.player_sprite.angle)) * BULLET_SPEED
         bullet_sprite.center_x = self.player_sprite.center_x
         bullet_sprite.center_y = self.player_sprite.center_y
         bullet_sprite.update()
-        self.check_bullet_pos()
-        self.bullet_list.append(bullet_sprite)
+        self.check_player_bullet_pos()
+        self.player_bullet_list.append(bullet_sprite)
         self.player_last_shoot_time = time.perf_counter()
 
     def handle_user_movement(self, symbol):
