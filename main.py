@@ -154,9 +154,6 @@ class SpaceInvader(arcade.Window):
             self.player.player_health -= self.bullet_damage
             print(f"Player hit! --> {self.player.player_health} HP")
     
-    def move_enemy(self):
-        self.enemy_sprite.change_x = MOVEMENT_SPEED
-
     def check_player_pos(self):
         if self.player_sprite.center_y < 0:
             self.player_sprite.change_y = MOVEMENT_SPEED
