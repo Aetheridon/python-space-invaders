@@ -143,7 +143,7 @@ class SpaceInvader(arcade.Window):
     def check_enemy_hit(self):
         hit_list = arcade.check_for_collision_with_list(self.enemy_sprite, self.player_bullet_list)
         for sprites in hit_list:
-            sprites.remove_from_sprite_lists()
+            sprites.remove_from_sprite_lists()s
             self.enemy.enemy_health -= self.bullet_damage
             print(f"Enemy hit! --> {self.enemy.enemy_health} HP")
     
@@ -153,7 +153,10 @@ class SpaceInvader(arcade.Window):
             sprites.remove_from_sprite_lists()
             self.player.player_health -= self.bullet_damage
             print(f"Player hit! --> {self.player.player_health} HP")
-    
+
+    def move_enemy(self):
+        self.enemy_sprite.change_x = MOVEMENT_SPEED
+        
     def check_player_pos(self):
         if self.player_sprite.center_y < 0:
             self.player_sprite.change_y = MOVEMENT_SPEED
@@ -232,6 +235,7 @@ class SpaceInvader(arcade.Window):
             self.player_sprite.change_x = -MOVEMENT_SPEED
         elif symbol == arcade.key.RIGHT:
             self.player_sprite.change_x = MOVEMENT_SPEED
+            self.enemy_sprite.change_x = MOVEMENT_SPEED
 
     def on_key_press(self, symbol, modifiers):
         """generic event handler for key press"""
