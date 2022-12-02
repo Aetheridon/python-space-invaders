@@ -78,6 +78,7 @@ class SpaceInvader(arcade.Window):
         self.player_shoot_delta = 0.5
         self.player_last_shoot_time = 0
         self.bullet_damage = 10
+        self.stuck = False
 
     def render_stars(self):
         """renders our star sprite"""
@@ -153,7 +154,18 @@ class SpaceInvader(arcade.Window):
             sprites.remove_from_sprite_lists()
             self.player.player_health -= self.bullet_damage
             print(f"Player hit! --> {self.player.player_health} HP")
-    
+
+    def move_enemy(self):
+        if self.enemy_sprite.center_x > SCREEN_WIDTH:
+            self.stuck = True
+        if not self.stuck:
+            self.enemy_sprite.change_x = MOVEMENT_SPEED
+        else:
+            if self.enemy_sprite.center_x < 0:
+                self.stuck = False
+            else:
+                self.enemy_sprite.change_x = -MOVEMENT_SPEED
+
     def check_player_pos(self):
         if self.player_sprite.center_y < 0:
             self.player_sprite.change_y = MOVEMENT_SPEED
@@ -197,6 +209,8 @@ class SpaceInvader(arcade.Window):
         self.enemy_bullet_list.update()
         self.check_enemy_hit()
         self.check_player_hit()
+        self.move_enemy()
+        self.enemy_list.update()
 
         if self.player.player_health <= 0:
                 self.player_sprite.remove_from_sprite_lists()
@@ -219,7 +233,7 @@ class SpaceInvader(arcade.Window):
         bullet_sprite.center_y = self.player_sprite.center_y
         bullet_sprite.update()
         self.check_player_bullet_pos()
-        self.player_bullet_list.append(bullet_sprite)
+        self.player_bullet_list.append(bullet_sprite) 
         self.player_last_shoot_time = time.perf_counter()
 
     def handle_user_movement(self, symbol):
@@ -232,7 +246,7 @@ class SpaceInvader(arcade.Window):
             self.player_sprite.change_x = -MOVEMENT_SPEED
         elif symbol == arcade.key.RIGHT:
             self.player_sprite.change_x = MOVEMENT_SPEED
-
+  
     def on_key_press(self, symbol, modifiers):
         """generic event handler for key press"""
         if symbol == arcade.key.SPACE and self.player.player_health != 0:
