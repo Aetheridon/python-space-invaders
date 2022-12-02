@@ -143,7 +143,7 @@ class SpaceInvader(arcade.Window):
     def check_enemy_hit(self):
         hit_list = arcade.check_for_collision_with_list(self.enemy_sprite, self.player_bullet_list)
         for sprites in hit_list:
-            sprites.remove_from_sprite_lists()s
+            sprites.remove_from_sprite_lists()
             self.enemy.enemy_health -= self.bullet_damage
             print(f"Enemy hit! --> {self.enemy.enemy_health} HP")
     
