@@ -14,7 +14,6 @@ SCALE = 0.5
 MOVEMENT_SPEED = 5
 BULLET_SPEED = 10
 
-
 class Player_Bullets(arcade.Sprite):
     """ class for player bullets"""
     def update(self):
@@ -102,7 +101,7 @@ class SpaceInvader(arcade.Window):
         player_image_source = ":resources:images/space_shooter/playerShip1_orange.png"
         self.player_sprite = arcade.Sprite(player_image_source, CHARACTER_SCALING)
         self.player_sprite.center_x = SCREEN_WIDTH / 2
-        self.player_sprite.center_y = 50
+        self.player_sprite.center_y = 100
         self.player_list.append(self.player_sprite)
         self.player = Player()
 
@@ -111,7 +110,7 @@ class SpaceInvader(arcade.Window):
         enemy_image_source = ":resources:images/space_shooter/playerShip3_orange.png"
         self.enemy_sprite = arcade.Sprite(enemy_image_source, CHARACTER_SCALING)
         self.enemy_sprite.center_x = 120
-        self.enemy_sprite.center_y = SCREEN_HEIGHT - self.enemy_sprite.height
+        self.enemy_sprite.center_y = 600 - self.enemy_sprite.height
         self.enemy_sprite.angle = 200
         self.enemy_list.append(self.enemy_sprite)
         self.enemy = Enemy()
@@ -124,6 +123,8 @@ class SpaceInvader(arcade.Window):
         self.enemy_list.draw()
         self.player_bullet_list.draw()
         self.enemy_bullet_list.draw()
+        arcade.draw_text(f"Enemy Health: {self.enemy.enemy_health}", self.enemy_sprite.center_x - 100, 600, arcade.color.WHITE, 20, 180, "left")
+        arcade.draw_text(f"Player Health: {self.player.player_health}", self.player_sprite.center_x - 100, self.player_sprite.center_y - 100, arcade.color.WHITE, 20, 180, "left")
 
     def check_player_bullet_pos(self):
         for bullet in self.player_bullet_list:
@@ -146,14 +147,12 @@ class SpaceInvader(arcade.Window):
         for sprites in hit_list:
             sprites.remove_from_sprite_lists()
             self.enemy.enemy_health -= self.bullet_damage
-            print(f"Enemy hit! --> {self.enemy.enemy_health} HP")
     
     def check_player_hit(self):
         hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.enemy_bullet_list)
         for sprites in hit_list:
             sprites.remove_from_sprite_lists()
             self.player.player_health -= self.bullet_damage
-            print(f"Player hit! --> {self.player.player_health} HP")
 
     def move_enemy(self):
         if self.enemy_sprite.center_x > SCREEN_WIDTH:
