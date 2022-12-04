@@ -115,6 +115,29 @@ class SpaceInvader(arcade.Window):
         self.enemy_list.append(self.enemy_sprite)
         self.enemy = Enemy()
 
+    def enemy_health_bar(self):
+        health_bar_width = 200
+        bar_x, bar_y = self.enemy_sprite.center_x, 600
+        arcade.draw_text(f"Enemy Health: {self.enemy.enemy_health}", self.enemy_sprite.center_x - 100, 600, arcade.color.WHITE, 20, 180, "left")
+        if self.enemy.enemy_health < 100:
+            arcade.draw_rectangle_filled(bar_x, bar_y + -10, health_bar_width, 3, arcade.color.RED)
+        
+        health_width = health_bar_width * (self.enemy.enemy_health / 100)
+
+        arcade.draw_rectangle_filled(bar_x - 0.5 * (health_bar_width - health_width), bar_y - 10, health_width, 3, arcade.color.GREEN)
+
+    def player_health_bar(self):
+        health_bar_width = 200
+        bar_x, bar_y = self.player_sprite.center_x, self.player_sprite.center_y - 100
+        arcade.draw_text(f"Player Health: {self.player.player_health}", self.player_sprite.center_x - 100, self.player_sprite.center_y - 100, arcade.color.WHITE, 20, 180, "left")
+
+        if self.player.player_health < 100:
+            arcade.draw_rectangle_filled(bar_x, bar_y + -10, health_bar_width, 3, arcade.color.RED)
+            
+        health_width = health_bar_width * (self.player.player_health / 100)
+
+        arcade.draw_rectangle_filled(bar_x - 0.5 * (health_bar_width - health_width), bar_y - 10, health_width, 3, arcade.color.GREEN)
+
     def on_draw(self):
         self.clear()
         for star in self.star_list:
@@ -123,9 +146,9 @@ class SpaceInvader(arcade.Window):
         self.enemy_list.draw()
         self.player_bullet_list.draw()
         self.enemy_bullet_list.draw()
-        arcade.draw_text(f"Enemy Health: {self.enemy.enemy_health}", self.enemy_sprite.center_x - 100, 600, arcade.color.WHITE, 20, 180, "left")
-        arcade.draw_text(f"Player Health: {self.player.player_health}", self.player_sprite.center_x - 100, self.player_sprite.center_y - 100, arcade.color.WHITE, 20, 180, "left")
-
+        self.enemy_health_bar()
+        self.player_health_bar()
+        
     def check_player_bullet_pos(self):
         for bullet in self.player_bullet_list:
             if bullet.top < 0:
@@ -146,7 +169,8 @@ class SpaceInvader(arcade.Window):
         hit_list = arcade.check_for_collision_with_list(self.enemy_sprite, self.player_bullet_list)
         for sprites in hit_list:
             sprites.remove_from_sprite_lists()
-            self.enemy.enemy_health -= self.bullet_damage
+            if self.enemy.enemy_health > 0:
+                self.enemy.enemy_health -= self.bullet_damage
     
     def check_player_hit(self):
         hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.enemy_bullet_list)
