@@ -22,4 +22,4 @@ For any issues or idea submissions go ahead and create a new issue with the appr
 
 ## Pictures
 
-![alt text](https://github.com/stilte/python-space-invaders/blob/main/pic1.PNG)
+![alt text](https://github.com/stilte/python-space-invaders/blob/main/pic1updated.PNG)
