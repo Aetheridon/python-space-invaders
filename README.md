@@ -2,6 +2,11 @@
 
 Python Space Invaders is my own spin-off of the arcade game Space Invaders in Python using the Arcade library
 
+## Basics
+
+Each level starts with 2 enemies. On the first level both enemies start by dealing 2 damage, as the levels increase this number is increased by 2.
+If you die then the game ends and the levels start from 1
+
 ## Setup
 
 To run this program you must create a virtual environment and install the [arcade](https://pypi.org/project/arcade/) library and you will need Python 3 and Pip installed on your system.
