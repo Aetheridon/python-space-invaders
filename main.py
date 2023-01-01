@@ -86,7 +86,8 @@ class SpaceInvader(arcade.Window):
         self.enemy_bullet_list = None # Bullet sprites for enemy
         self.player_shoot_delta = 0.5
         self.player_last_shoot_time = 0
-        self.bullet_damage = 10
+        self.player_bullet_damage = 10
+        self.enemy_bullet_damage = 2
         self.stuck = False
         self.level = 1
 
@@ -182,6 +183,8 @@ class SpaceInvader(arcade.Window):
         self.player.player_health = 100
         self.level += 1
 
+        self.enemy_bullet_damage += 2
+
         self.enemy = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
         self.enemy2 = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
 
@@ -203,14 +206,14 @@ class SpaceInvader(arcade.Window):
             for sprites in hit_list:
                 sprites.remove_from_sprite_lists()
                 if enemy.enemy_health > 0:
-                    enemy.enemy_health -= self.bullet_damage
+                    enemy.enemy_health -= self.player_bullet_damage
                     self.check_to_move_to_next_lvl()
     
     def check_player_hit(self):
         hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.enemy_bullet_list)
         for sprites in hit_list:
             sprites.remove_from_sprite_lists()
-            self.player.player_health -= self.bullet_damage
+            self.player.player_health -= self.enemy_bullet_damage
 
     def move_enemy(self):
         for enemy in enemy_objects:
