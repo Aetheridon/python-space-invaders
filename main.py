@@ -90,6 +90,7 @@ class SpaceInvader(arcade.Window):
         self.enemy_bullet_damage = 2
         self.stuck = False
         self.level = 1
+        self.wave = 1
 
     def render_stars(self):
         """renders our star sprite"""
@@ -162,6 +163,8 @@ class SpaceInvader(arcade.Window):
         self.enemy_health_bar()
         self.player_health_bar()
         arcade.draw_text(f"Level: {self.level}", 20, SCREEN_HEIGHT - 40, arcade.color.WHITE, 20, 180, "left")
+        arcade.draw_text(f"Wave: {self.wave}", 20, SCREEN_HEIGHT - 80, arcade.color.WHITE, 20, 180, "left")
+        
         
     def check_player_bullet_pos(self):
         for bullet in self.player_bullet_list:
@@ -179,12 +182,15 @@ class SpaceInvader(arcade.Window):
             if star.y < 0:
                 star.reset_pos()
     
-    def start_new_game(self): 
+    def start_new_game(self):
+        if self.wave < 3:
+            self.wave += 1
+        else:          
+            self.level += 1
+            self.wave = 0
+            self.enemy_bullet_damage += 2
+
         self.player.player_health = 100
-        self.level += 1
-
-        self.enemy_bullet_damage += 2
-
         self.enemy = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
         self.enemy2 = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
 
@@ -333,4 +339,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
