@@ -63,11 +63,10 @@ class Enemy(arcade.Sprite):
     def __init__(self, x_position):
         self.enemy_health = 100
         self.stuck = False
-        enemy_image_source = ":resources:images/space_shooter/playerShip3_orange.png"
+        enemy_image_source = "sprites\enemy-sprite.png"#":resources:images/space_shooter/playerShip3_orange.png"
         self.enemy_sprite = arcade.Sprite(enemy_image_source, CHARACTER_SCALING)
         self.enemy_sprite.center_x = x_position 
         self.enemy_sprite.center_y = 600 - self.enemy_sprite.height 
-        self.enemy_sprite.angle = 200
         enemy_list.append(self.enemy_sprite)
 
 class SpaceInvader(arcade.Window):
@@ -252,7 +251,6 @@ class SpaceInvader(arcade.Window):
                 x_diff = dest_x - start_x
                 y_diff = dest_y - start_y
                 angle = math.atan2(y_diff, x_diff)
-                enemy.angle = math.degrees(angle) - 90
                 if self.player.player_health > 0:
                     if self.frame_count % 60 == 0:
                         bullet = Enemy_Bullets(":resources:images/space_shooter/laserBlue01.png")
