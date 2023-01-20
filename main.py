@@ -110,10 +110,11 @@ class SpaceInvader(arcade.Window):
 
         ###### PLAYER SPRITE ######
         self.player_list = arcade.SpriteList()
-        player_image_source = ":resources:images/space_shooter/playerShip1_orange.png"
+        player_image_source = "sprites\player-sprite.png"#":resources:images/space_shooter/playerShip1_orange.png"
         self.player_sprite = arcade.Sprite(player_image_source, CHARACTER_SCALING)
         self.player_sprite.center_x = SCREEN_WIDTH / 2
         self.player_sprite.center_y = 100
+        self.player_sprite.angle = 180
         self.player_list.append(self.player_sprite)
         self.player = Player()
         
@@ -295,7 +296,7 @@ class SpaceInvader(arcade.Window):
             return
         bullet_sprite = Player_Bullets(":resources:images/space_shooter/laserBlue01.png")
         bullet_sprite.guid = "Bullet"
-        bullet_sprite.change_y = math.cos(math.radians(self.player_sprite.angle)) * BULLET_SPEED
+        bullet_sprite.change_y = -math.cos(math.radians(180)) * BULLET_SPEED
         bullet_sprite.center_x = self.player_sprite.center_x
         bullet_sprite.center_y = self.player_sprite.center_y
         bullet_sprite.update()
