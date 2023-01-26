@@ -2,23 +2,30 @@
 
 import random
 import math
-import random
 import time
 
 import arcade
 
-SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 650
+SCREEN_WIDTH = 2000
+SCREEN_HEIGHT = 1000
 SCREEN_TITLE = "Space Invaders"
 CHARACTER_SCALING = 1
 SCALE = 0.5
-MOVEMENT_SPEED = 5
-BULLET_SPEED = 10
+MOVEMENT_SPEED = 6.5
+BULLET_SPEED = 15
 enemy_list = arcade.SpriteList()
 enemy_objects = []
+boss_list = arcade.SpriteList()
+boss_objects = []
 
 class Player_Bullets(arcade.Sprite):
     """ class for player bullets"""
+    def update(self):
+        super().update()
+        self.angle = math.degrees(math.atan2(self.change_y, self.change_x))
+
+class Enemy_Bullets(arcade.Sprite):
+    """class for enemy bullets"""
     def update(self):
         super().update()
         self.angle = math.degrees(math.atan2(self.change_y, self.change_x))
@@ -63,11 +70,21 @@ class Enemy(arcade.Sprite):
     def __init__(self, x_position):
         self.enemy_health = 100
         self.stuck = False
-        enemy_image_source = "sprites\enemy-sprite.png"#":resources:images/space_shooter/playerShip3_orange.png"
+        enemy_image_source = "sprites\enemy-sprite.png"
         self.enemy_sprite = arcade.Sprite(enemy_image_source, CHARACTER_SCALING)
         self.enemy_sprite.center_x = x_position 
-        self.enemy_sprite.center_y = 600 - self.enemy_sprite.height 
+        self.enemy_sprite.center_y = SCREEN_HEIGHT - self.enemy_sprite.height 
         enemy_list.append(self.enemy_sprite)
+
+class Boss(arcade.Sprite):
+    def __init__(self, x_position):
+        self.boss_health = 150
+        self.stuck = False
+        boss_image_source = "sprites\\boss-sprite-3.png"
+        self.boss_sprite = arcade.Sprite(boss_image_source, CHARACTER_SCALING)
+        self.boss_sprite.center_x = x_position
+        self.boss_sprite.center_y = SCREEN_HEIGHT - self.boss_sprite.height
+        boss_list.append(self.boss_sprite)
 
 class SpaceInvader(arcade.Window):
     """A class to manage and control our game"""
@@ -77,19 +94,24 @@ class SpaceInvader(arcade.Window):
         arcade.set_background_color(arcade.csscolor.BLACK)
         self.frame_count = 0
         self.enemy_list = None  # List for enemy ships
+        self.boss_list = None # List for boss ships
         self.star_list = None  # List for stars
         self.player_list = None  # Player sprite is appended to this list
         self.player_sprite = None  # Player sprite
         self.enemy_sprite = None  # Enemy sprite
+        self.boss_sprite = None # Boss sprite
         self.player_bullet_list = None  # Bullet sprites for player
         self.enemy_bullet_list = None # Bullet sprites for enemy
+        self.boss_bullet_list = None # Bullet sprites for boss
         self.player_shoot_delta = 0.5
         self.player_last_shoot_time = 0
         self.player_bullet_damage = 10
         self.enemy_bullet_damage = 2
+        self.boss_bullet_damage = 20
         self.stuck = False
         self.level = 1
         self.wave = 1
+        self.boss_spawned = False
 
     def render_stars(self):
         """renders our star sprite"""
@@ -110,7 +132,7 @@ class SpaceInvader(arcade.Window):
 
         ###### PLAYER SPRITE ######
         self.player_list = arcade.SpriteList()
-        player_image_source = "sprites\player-sprite.png"#":resources:images/space_shooter/playerShip1_orange.png"
+        player_image_source = "sprites\player-sprite.png"
         self.player_sprite = arcade.Sprite(player_image_source, CHARACTER_SCALING)
         self.player_sprite.center_x = SCREEN_WIDTH / 2
         self.player_sprite.center_y = 100
@@ -128,8 +150,8 @@ class SpaceInvader(arcade.Window):
         health_bar_width = 200
         for enemy in enemy_objects:
             if enemy.enemy_health > 0:
-                bar_x, bar_y = enemy.enemy_sprite.center_x, 600
-                arcade.draw_text(f"Enemy Health: {enemy.enemy_health}", enemy.enemy_sprite.center_x - 100, 600, arcade.color.WHITE, 20, 180, "left")
+                bar_x, bar_y = enemy.enemy_sprite.center_x, SCREEN_HEIGHT - 20
+                arcade.draw_text(f"Enemy Health: {enemy.enemy_health}", enemy.enemy_sprite.center_x - 100, SCREEN_HEIGHT - 20, arcade.color.WHITE, 20, 180, "left")
                 if enemy.enemy_health < 100:
                     arcade.draw_rectangle_filled(bar_x, bar_y + -10, health_bar_width, 3, arcade.color.RED)
                 
@@ -152,16 +174,31 @@ class SpaceInvader(arcade.Window):
         else:
             arcade.draw_text("GAME OVER!", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, arcade.color.WHITE, 20, 180)
 
+    def boss_health_bar(self):
+        health_bar_width = 200
+        for boss in boss_objects:
+            if boss.boss_health > 0:
+                bar_x, bar_y = boss.boss_sprite.center_x, SCREEN_HEIGHT - 25
+                arcade.draw_text(f"Boss Health: {boss.boss_health}", boss.boss_sprite.center_x - 100, SCREEN_HEIGHT - 25, arcade.color.WHITE, 20, 180, "left")
+                if boss.boss_health < 150:
+                    arcade.draw_rectangle_filled(bar_x, bar_y + -10, health_bar_width, 3, arcade.color.RED)
+                
+                health_width = health_bar_width * (boss.boss_health / 150)
+
+                arcade.draw_rectangle_filled(bar_x - 0.5 * (health_bar_width - health_width), bar_y - 10, health_width, 3, arcade.color.GREEN)
+                
     def on_draw(self):
         self.clear()
         for star in self.star_list:
             arcade.draw_circle_filled(star.x, star.y, star.size, arcade.color.WHITE)
         self.player_list.draw()
         enemy_list.draw()
+        boss_list.draw()
         self.player_bullet_list.draw()
         self.enemy_bullet_list.draw()
         self.enemy_health_bar()
         self.player_health_bar()
+        self.boss_health_bar()
         arcade.draw_text(f"Level: {self.level}", 20, SCREEN_HEIGHT - 40, arcade.color.WHITE, 20, 180, "left")
         arcade.draw_text(f"Wave: {self.wave}", 20, SCREEN_HEIGHT - 80, arcade.color.WHITE, 20, 180, "left")
         
@@ -184,28 +221,52 @@ class SpaceInvader(arcade.Window):
     
     def start_new_game(self):
         if self.wave < 3:
-            self.wave += 1
-        else:          
+            self.wave += 1 
+        else:
             self.level += 1
             self.wave = 0
             self.enemy_bullet_damage += 2
 
         self.player.player_health = 100
-        self.enemy = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
-        self.enemy2 = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
+
+        if self.level % 5 == 0 and self.wave == 3:
+            self.boss = Boss(x_position=random.randint(0, SCREEN_WIDTH))
+            boss_objects.append(self.boss)
+            self.boss_spawned = True
+
+        else:
+            self.enemy = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
+            self.enemy2 = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
 
         enemy_objects.append(self.enemy)
         enemy_objects.append(self.enemy2)
 
     def check_to_move_to_next_lvl(self):
-        enemy_death_count = 0
-        for enemy in enemy_objects:
-            if enemy.enemy_health == 0:
-                enemy_death_count += 1
-        
-        if enemy_death_count == len(enemy_objects):
-            self.start_new_game()
+        if self.boss_spawned:
+            for boss in boss_objects:
+                if boss.boss_health <= 0:
+                    boss.boss_sprite.remove_from_sprite_lists()
+                    self.boss_spawned = False
+                    self.start_new_game()
+
+        else:
+            enemy_death_count = 0
+            for enemy in enemy_objects:
+                if enemy.enemy_health == 0:
+                    enemy_death_count += 1
+            
+            if enemy_death_count == len(enemy_objects):
+                self.start_new_game()
     
+    def check_boss_hit(self):
+        for boss in boss_objects:
+            hit_list = arcade.check_for_collision_with_list(boss.boss_sprite, self.player_bullet_list)
+            for sprites in hit_list:
+                sprites.remove_from_sprite_lists()
+                if boss.boss_health > 0:
+                    boss.boss_health -= self.player_bullet_damage
+                    self.check_to_move_to_next_lvl()
+
     def check_enemy_hit(self):
         for enemy in enemy_objects:
             hit_list = arcade.check_for_collision_with_list(enemy.enemy_sprite, self.player_bullet_list)
@@ -219,7 +280,10 @@ class SpaceInvader(arcade.Window):
         hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.enemy_bullet_list)
         for sprites in hit_list:
             sprites.remove_from_sprite_lists()
-            self.player.player_health -= self.enemy_bullet_damage
+            if self.boss_spawned:
+                self.player.player_health -= self.boss_bullet_damage
+            else:
+                self.player.player_health -= self.enemy_bullet_damage
 
     def move_enemy(self):
         for enemy in enemy_objects:
@@ -232,6 +296,18 @@ class SpaceInvader(arcade.Window):
                     enemy.stuck = False
                 else:
                     enemy.enemy_sprite.change_x = -MOVEMENT_SPEED
+
+    def move_boss(self):
+        for boss in boss_objects:
+            if boss.boss_sprite.center_x > SCREEN_WIDTH:
+                boss.stuck = True
+            if not boss.stuck:
+                boss.boss_sprite.change_x = MOVEMENT_SPEED
+            else:
+                if boss.boss_sprite.center_x < 0:
+                    boss.stuck = False
+                else:
+                    boss.boss_sprite.change_x = -MOVEMENT_SPEED
 
     def check_player_pos(self):
         if self.player_sprite.center_y < 0:
@@ -265,18 +341,58 @@ class SpaceInvader(arcade.Window):
                 else:
                     return
 
+    def boss_shoot(self):
+        for boss in boss_list:
+            start_x = boss.center_x
+            start_y = boss.center_y
+            dest_x = self.player_sprite.center_x
+            dest_y = self.player_sprite.center_y
+            x_diff = dest_x - start_x
+            y_diff = dest_y - start_y
+            angle = math.atan2(y_diff, x_diff)
+            if self.player.player_health > 0:
+                if self.frame_count % 60 == 0:
+                    bullet = Enemy_Bullets(":resources:images/space_shooter/laserBlue01.png")
+                    bullet.center_x = start_x
+                    bullet.center_y = start_y
+                    bullet.angle = math.degrees(angle)
+                    bullet.change_x = math.cos(angle) * BULLET_SPEED
+                    bullet.change_y = math.sin(angle) * BULLET_SPEED
+
+                    bullet2 = Enemy_Bullets(":resources:images/space_shooter/laserBlue01.png")
+                    bullet2.center_x = start_x - 20
+                    bullet2.center_y = start_y
+                    bullet2.angle = math.degrees(angle)
+                    bullet2.change_x = math.cos(angle) * BULLET_SPEED
+                    bullet2.change_y = math.sin(angle) * BULLET_SPEED
+
+                    self.enemy_bullet_list.append(bullet)
+                    self.enemy_bullet_list.append(bullet2)
+                    self.check_enemy_bullet_pos()
+
+                else:
+                    return
+
     def on_update(self, delta_time):
         self.player_list.update()
         self.frame_count += 1
         self.enemy_shoot()
+        self.boss_shoot()
         self.check_star_pos(delta_time)
         self.check_player_pos()
         self.player_bullet_list.update()
         self.enemy_bullet_list.update()
         self.check_enemy_hit()
         self.check_player_hit()
+        self.check_boss_hit()
         self.move_enemy()
+
+        if self.boss_spawned:
+            self.move_boss()
+            self.boss_health_bar()
+
         enemy_list.update()
+        boss_list.update()
 
         if self.player.player_health <= 0:
             self.player_sprite.remove_from_sprite_lists()
@@ -284,7 +400,6 @@ class SpaceInvader(arcade.Window):
         for enemy in enemy_objects:
             if enemy.enemy_health == 0:
                 enemy.enemy_sprite.remove_from_sprite_lists()
-
 
     def check_player_shoot(self):
         """Check if we have passed a small delta of allow time before the player is allowed to shoot"""
