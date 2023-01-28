@@ -112,6 +112,8 @@ class SpaceInvader(arcade.Window):
         self.level = 1
         self.wave = 1
         self.boss_spawned = False
+        self.enemy_dodge_skill = 10
+        self.boss_dodge_skill = 175
 
     def render_stars(self):
         """renders our star sprite"""
@@ -205,8 +207,8 @@ class SpaceInvader(arcade.Window):
         
     def check_player_bullet_pos(self):
         for bullet in self.player_bullet_list:
-            if bullet.top < 0:
-                bullet.remove_from_sprite_lists()
+            if bullet.top > SCREEN_HEIGHT:
+                self.player_bullet_list.remove(bullet)
 
     def check_enemy_bullet_pos(self):
         for bullet in self.enemy_bullet_list:
@@ -226,7 +228,9 @@ class SpaceInvader(arcade.Window):
             self.level += 1
             self.wave = 0
             self.enemy_bullet_damage += 2
-
+            self.enemy_dodge_skill += 50
+            self.boss_dodge_skill += 50
+ 
         self.player.player_health = 100
 
         if self.level % 5 == 0 and self.wave == 3:
@@ -287,27 +291,44 @@ class SpaceInvader(arcade.Window):
 
     def move_enemy(self):
         for enemy in enemy_objects:
-            if enemy.enemy_sprite.center_x > SCREEN_WIDTH:
-                enemy.stuck = True
-            if not enemy.stuck:
-                enemy.enemy_sprite.change_x = MOVEMENT_SPEED
-            else:
-                if enemy.enemy_sprite.center_x < 0:
-                    enemy.stuck = False
-                else:
-                    enemy.enemy_sprite.change_x = -MOVEMENT_SPEED
+            for bullet in self.player_bullet_list:
+                if enemy.enemy_sprite.center_y - bullet.center_y < self.enemy_dodge_skill: # decrease to make it easier, increase to make harder
+                    if bullet.center_x >= enemy.enemy_sprite.center_x:
+                        if enemy.enemy_sprite.center_x <= 100:
+                            enemy.enemy_sprite.change_x = 100 # Prevents player going out of bounds
+                        else:
+                            enemy.enemy_sprite.change_x = -MOVEMENT_SPEED
+
+                    elif bullet.center_x <= enemy.enemy_sprite.center_x:
+                        if enemy.enemy_sprite.center_x >= SCREEN_WIDTH - 100:
+                            if enemy.enemy_sprite.center_x >= SCREEN_WIDTH - 200: # Move player away from bounds
+                                enemy.enemy_sprite.change_x = -100
+                        else:
+                            enemy.enemy_sprite.change_x = MOVEMENT_SPEED
+
+                if bullet.center_y > enemy.enemy_sprite.center_y:
+                    enemy.enemy_sprite.change_x = 0
 
     def move_boss(self):
         for boss in boss_objects:
-            if boss.boss_sprite.center_x > SCREEN_WIDTH:
-                boss.stuck = True
-            if not boss.stuck:
-                boss.boss_sprite.change_x = MOVEMENT_SPEED
-            else:
-                if boss.boss_sprite.center_x < 0:
-                    boss.stuck = False
-                else:
-                    boss.boss_sprite.change_x = -MOVEMENT_SPEED
+            for bullet in self.player_bullet_list:
+                if boss.boss_sprite.center_y - bullet.center_y < self.boss_dodge_skill:
+                    if bullet.center_x >= boss.boss_sprite.center_x:
+                        if boss.boss_sprite.center_x <= 100:
+                            boss.boss_sprite.change_x = 100 # Prevents player going out of bounds
+                        else:
+                            boss.boss_sprite.change_x = -MOVEMENT_SPEED
+
+                    elif bullet.center_x <= boss.boss_sprite.center_x:
+                        if boss.boss_sprite.center_x >= SCREEN_WIDTH - 100:
+                            if boss.boss_sprite.center_x >= SCREEN_WIDTH - 200: # Move player away from bounds
+                                boss.boss_sprite.change_x = -100
+                        else:
+                            boss.boss_sprite.change_x = MOVEMENT_SPEED
+
+                if bullet.center_y > boss.boss_sprite.center_y:
+                    boss.boss_sprite.change_x = 0
+            
 
     def check_player_pos(self):
         if self.player_sprite.center_y < 0:
