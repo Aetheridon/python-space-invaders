@@ -109,8 +109,8 @@ class SpaceInvader(arcade.Window):
         self.enemy_bullet_damage = 2
         self.boss_bullet_damage = 20
         self.stuck = False
-        self.level = 5
-        self.wave = 2
+        self.level = 1
+        self.wave = 1
         self.boss_spawned = False
         self.enemy_dodge_skill = 50
         self.boss_dodge_skill = 175
