@@ -109,10 +109,10 @@ class SpaceInvader(arcade.Window):
         self.enemy_bullet_damage = 2
         self.boss_bullet_damage = 20
         self.stuck = False
-        self.level = 1
-        self.wave = 1
+        self.level = 5
+        self.wave = 2
         self.boss_spawned = False
-        self.enemy_dodge_skill = 10
+        self.enemy_dodge_skill = 50
         self.boss_dodge_skill = 175
 
     def render_stars(self):
@@ -343,7 +343,7 @@ class SpaceInvader(arcade.Window):
     def enemy_shoot(self):
             for enemy in enemy_list:
                 start_x = enemy.center_x
-                start_y = enemy.center_y
+                start_y = enemy.bottom
                 dest_x = self.player_sprite.center_x
                 dest_y = self.player_sprite.center_y
                 x_diff = dest_x - start_x
@@ -365,7 +365,7 @@ class SpaceInvader(arcade.Window):
     def boss_shoot(self):
         for boss in boss_list:
             start_x = boss.center_x
-            start_y = boss.center_y
+            start_y = boss.bottom
             dest_x = self.player_sprite.center_x
             dest_y = self.player_sprite.center_y
             x_diff = dest_x - start_x
@@ -434,7 +434,7 @@ class SpaceInvader(arcade.Window):
         bullet_sprite.guid = "Bullet"
         bullet_sprite.change_y = -math.cos(math.radians(180)) * BULLET_SPEED
         bullet_sprite.center_x = self.player_sprite.center_x
-        bullet_sprite.center_y = self.player_sprite.center_y
+        bullet_sprite.center_y = self.player_sprite.top
         bullet_sprite.update()
         self.check_player_bullet_pos()
         self.player_bullet_list.append(bullet_sprite) 
