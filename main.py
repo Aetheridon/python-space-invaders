@@ -17,15 +17,11 @@ enemy_list = arcade.SpriteList()
 enemy_objects = []
 boss_list = arcade.SpriteList()
 boss_objects = []
+star_list = []
+
 
 class Player_Bullets(arcade.Sprite):
     """ class for player bullets"""
-    def update(self):
-        super().update()
-        self.angle = math.degrees(math.atan2(self.change_y, self.change_x))
-
-class Enemy_Bullets(arcade.Sprite):
-    """class for enemy bullets"""
     def update(self):
         super().update()
         self.angle = math.degrees(math.atan2(self.change_y, self.change_x))
@@ -48,6 +44,12 @@ class Star:
         """reset the position of the star"""
         self.y = random.randrange(SCREEN_HEIGHT, SCREEN_HEIGHT + 100)
         self.x = random.randrange(SCREEN_WIDTH)
+
+    def check_star_pos(self, delta_time):
+        for star in star_list:
+            star.y -= star.speed * delta_time
+            if star.y < 0:
+                star.reset_pos()
 
 class Player(arcade.Sprite):
     """Generic class for the player"""
@@ -93,22 +95,11 @@ class SpaceInvader(arcade.Window):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
         arcade.set_background_color(arcade.csscolor.BLACK)
         self.frame_count = 0
-        self.enemy_list = None  # List for enemy ships
-        self.boss_list = None # List for boss ships
-        self.star_list = None  # List for stars
-        self.player_list = None  # Player sprite is appended to this list
-        self.player_sprite = None  # Player sprite
-        self.enemy_sprite = None  # Enemy sprite
-        self.boss_sprite = None # Boss sprite
-        self.player_bullet_list = None  # Bullet sprites for player
-        self.enemy_bullet_list = None # Bullet sprites for enemy
-        self.boss_bullet_list = None # Bullet sprites for boss
         self.player_shoot_delta = 0.5
         self.player_last_shoot_time = 0
         self.player_bullet_damage = 10
         self.enemy_bullet_damage = 2
         self.boss_bullet_damage = 20
-        self.stuck = False
         self.level = 1
         self.wave = 1
         self.boss_spawned = False
@@ -117,14 +108,14 @@ class SpaceInvader(arcade.Window):
 
     def render_stars(self):
         """renders our star sprite"""
-        self.star_list = []
         for _ in range(50):
-            star = Star()
-            star.x = random.randrange(SCREEN_WIDTH)
-            star.y = random.randrange(SCREEN_HEIGHT + 200)
-            star.size = random.randrange(4)
-            star.speed = random.randrange(30, 50)
-            self.star_list.append(star)
+            self.star = Star()
+            self.star.x = random.randrange(SCREEN_WIDTH)
+            self.star.y = random.randrange(SCREEN_HEIGHT + 200)
+            self.star.size = random.randrange(4)
+            self.star.speed = random.randrange(30, 50)
+            star_list.append(self.star)
+
         self.set_mouse_visible(False)
 
     def setup(self):
@@ -191,7 +182,7 @@ class SpaceInvader(arcade.Window):
                 
     def on_draw(self):
         self.clear()
-        for star in self.star_list:
+        for star in star_list:
             arcade.draw_circle_filled(star.x, star.y, star.size, arcade.color.WHITE)
         self.player_list.draw()
         enemy_list.draw()
@@ -204,7 +195,6 @@ class SpaceInvader(arcade.Window):
         arcade.draw_text(f"Level: {self.level}", 20, SCREEN_HEIGHT - 40, arcade.color.WHITE, 20, 180, "left")
         arcade.draw_text(f"Wave: {self.wave}", 20, SCREEN_HEIGHT - 80, arcade.color.WHITE, 20, 180, "left")
         
-        
     def check_player_bullet_pos(self):
         for bullet in self.player_bullet_list:
             if bullet.top > SCREEN_HEIGHT:
@@ -215,12 +205,6 @@ class SpaceInvader(arcade.Window):
             if bullet.top < 0:
                 bullet.remove_from_sprite_lists()
 
-    def check_star_pos(self, delta_time):
-        for star in self.star_list:
-            star.y -= star.speed * delta_time
-            if star.y < 0:
-                star.reset_pos()
-    
     def start_new_game(self):
         if self.wave < 3:
             self.wave += 1 
@@ -399,7 +383,7 @@ class SpaceInvader(arcade.Window):
         self.frame_count += 1
         self.enemy_shoot()
         self.boss_shoot()
-        self.check_star_pos(delta_time)
+        self.star.check_star_pos(delta_time)
         self.check_player_pos()
         self.player_bullet_list.update()
         self.enemy_bullet_list.update()
@@ -465,6 +449,7 @@ class SpaceInvader(arcade.Window):
             self.player_sprite.change_y = 0
         elif symbol == arcade.key.LEFT or symbol == arcade.key.RIGHT:
             self.player_sprite.change_x = 0
+
 def main():
     """main function where the magic happens"""
     window = SpaceInvader()
