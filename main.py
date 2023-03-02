@@ -38,6 +38,11 @@ class Enemy_Bullets(arcade.Sprite):
         super().update()
         self.angle = math.degrees(math.atan2(self.change_y, self.change_x))
 
+    def check_enemy_bullet_pos(self):
+        for bullet in enemy_bullet_list:
+            if bullet.top < 0:
+                bullet.remove_from_sprite_lists()
+
 class Star:
     """Generic class for the star sprites"""
     def __init__(self):
@@ -153,6 +158,7 @@ class Player(arcade.Sprite):
 
 class Enemy(arcade.Sprite):
     def __init__(self, x_position):
+        self.enemy_dodge_skill = 50
         self.enemy_health = 100
         self.stuck = False
         enemy_image_source = "sprites\enemy-sprite.png"
@@ -181,8 +187,6 @@ class Enemy(arcade.Sprite):
                 sprites.remove_from_sprite_lists()
                 if self.enemy_health > 0:
                     self.enemy_health -= player_bullet_damage
-                    # self.check_to_move_to_next_lvl(boss_spawned=boss_spawned) #TODO: work on this
-
 
 class Boss(arcade.Sprite):
     def __init__(self, x_position):
@@ -203,7 +207,6 @@ class SpaceInvader(arcade.Window):
         self.frame_count = 0
         self.level = 1
         self.wave = 1
-        self.enemy_dodge_skill = 50
         self.boss_dodge_skill = 175
 
     def render_stars(self):
@@ -258,11 +261,6 @@ class SpaceInvader(arcade.Window):
         arcade.draw_text(f"Level: {self.level}", 20, SCREEN_HEIGHT - 40, arcade.color.WHITE, 20, 180, "left")
         arcade.draw_text(f"Wave: {self.wave}", 20, SCREEN_HEIGHT - 80, arcade.color.WHITE, 20, 180, "left")
         
-    def check_enemy_bullet_pos(self):
-        for bullet in enemy_bullet_list:
-            if bullet.top < 0:
-                bullet.remove_from_sprite_lists()
-
     def start_new_game(self):
         if self.wave < 3:
             self.wave += 1 
@@ -270,7 +268,7 @@ class SpaceInvader(arcade.Window):
             self.level += 1
             self.wave = 0
             enemy_bullet_damage += 2
-            self.enemy_dodge_skill += 50
+            self.enemy.enemy_dodge_skill += 50
             self.boss_dodge_skill += 50
  
         self.player.player_health = 100
@@ -316,7 +314,7 @@ class SpaceInvader(arcade.Window):
     def move_enemy(self):
         for enemy in enemy_objects:
             for bullet in player_bullet_list:
-                if enemy.enemy_sprite.center_y - bullet.center_y < self.enemy_dodge_skill: # decrease to make it easier, increase to make harder
+                if enemy.enemy_sprite.center_y - bullet.center_y < self.enemy.enemy_dodge_skill: # decrease to make it easier, increase to make harder
                     if bullet.center_x >= enemy.enemy_sprite.center_x:
                         if enemy.enemy_sprite.center_x <= 100:
                             enemy.enemy_sprite.change_x = 100 # Prevents player going out of bounds
@@ -371,9 +369,9 @@ class SpaceInvader(arcade.Window):
                         bullet.change_x = math.cos(angle) * BULLET_SPEED
                         bullet.change_y = math.sin(angle) * BULLET_SPEED
                         enemy_bullet_list.append(bullet)
-                        self.check_enemy_bullet_pos()
+                        bullet.check_enemy_bullet_pos()
                 else:
-                    return
+                    returns
 
     def boss_shoot(self):
         for boss in boss_list:
@@ -421,6 +419,7 @@ class SpaceInvader(arcade.Window):
         self.player.check_player_hit()
         self.check_boss_hit()
         self.move_enemy()
+        self.check_to_move_to_next_lvl(boss_spawned=boss_spawned)
 
         if boss_spawned:
             self.move_boss()
