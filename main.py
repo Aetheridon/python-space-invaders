@@ -371,7 +371,7 @@ class SpaceInvader(arcade.Window):
                         enemy_bullet_list.append(bullet)
                         bullet.check_enemy_bullet_pos()
                 else:
-                    returns
+                    return
 
     def boss_shoot(self):
         for boss in boss_list:
@@ -429,7 +429,7 @@ class SpaceInvader(arcade.Window):
         boss_list.update()
 
         if self.player.player_health <= 0:
-            self.player_sprite.remove_from_sprite_lists()
+            self.player.player_sprite.remove_from_sprite_lists()
 
         for enemy in enemy_objects:
             if enemy.enemy_health == 0:
