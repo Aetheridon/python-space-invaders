@@ -179,6 +179,25 @@ class Enemy(arcade.Sprite):
                 health_width = health_bar_width * (self.enemy_health / 100)
 
                 arcade.draw_rectangle_filled(bar_x - 0.5 * (health_bar_width - health_width), bar_y - 10, health_width, 3, arcade.color.GREEN)
+
+    def move_enemy(self):
+        for bullet in player_bullet_list:
+            if self.enemy_sprite.center_y - bullet.center_y < self.enemy_dodge_skill: # decrease to make it easier, increase to make harder
+                if bullet.center_x >= self.enemy_sprite.center_x:
+                    if self.enemy_sprite.center_x <= 100:
+                        self.enemy_sprite.change_x = 100 # Prevents player going out of bounds
+                    else:
+                        self.enemy_sprite.change_x = -MOVEMENT_SPEED
+
+                elif bullet.center_x <= self.enemy_sprite.center_x:
+                    if self.enemy_sprite.center_x >= SCREEN_WIDTH - 100:
+                        if self.enemy_sprite.center_x >= SCREEN_WIDTH - 200: # Move player away from bounds
+                            self.enemy_sprite.change_x = -100
+                    else:
+                        self.enemy_sprite.change_x = MOVEMENT_SPEED
+
+            if bullet.center_y > self.enemy_sprite.center_y:
+                self.enemy_sprite.change_x = 0
     
     def check_enemy_hit(self):
         for enemy in enemy_objects:
@@ -311,26 +330,6 @@ class SpaceInvader(arcade.Window):
                     boss.boss_health -= player_bullet_damage
                     self.check_to_move_to_next_lvl(boss_spawned=boss_spawned)
 
-    def move_enemy(self):
-        for enemy in enemy_objects:
-            for bullet in player_bullet_list:
-                if enemy.enemy_sprite.center_y - bullet.center_y < self.enemy.enemy_dodge_skill: # decrease to make it easier, increase to make harder
-                    if bullet.center_x >= enemy.enemy_sprite.center_x:
-                        if enemy.enemy_sprite.center_x <= 100:
-                            enemy.enemy_sprite.change_x = 100 # Prevents player going out of bounds
-                        else:
-                            enemy.enemy_sprite.change_x = -MOVEMENT_SPEED
-
-                    elif bullet.center_x <= enemy.enemy_sprite.center_x:
-                        if enemy.enemy_sprite.center_x >= SCREEN_WIDTH - 100:
-                            if enemy.enemy_sprite.center_x >= SCREEN_WIDTH - 200: # Move player away from bounds
-                                enemy.enemy_sprite.change_x = -100
-                        else:
-                            enemy.enemy_sprite.change_x = MOVEMENT_SPEED
-
-                if bullet.center_y > enemy.enemy_sprite.center_y:
-                    enemy.enemy_sprite.change_x = 0
-
     def move_boss(self):
         for boss in boss_objects:
             for bullet in player_bullet_list:
@@ -418,7 +417,9 @@ class SpaceInvader(arcade.Window):
         self.enemy2.check_enemy_hit()
         self.player.check_player_hit()
         self.check_boss_hit()
-        self.move_enemy()
+        self.enemy.move_enemy()
+        self.enemy2.move_enemy()
+
         self.check_to_move_to_next_lvl(boss_spawned=boss_spawned)
 
         if boss_spawned:
