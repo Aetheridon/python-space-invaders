@@ -25,6 +25,7 @@ boss_list = arcade.SpriteList()
 boss_objects = []
 star_list = []
 boss_spawned = False
+frame_count = 0
 
 class Player_Bullets(arcade.Sprite):
     """ class for player bullets"""
@@ -156,6 +157,8 @@ class Player(arcade.Sprite):
         else:
             arcade.draw_text("GAME OVER!", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, arcade.color.WHITE, 20, 180)
 
+player = Player()
+
 class Enemy(arcade.Sprite):
     def __init__(self, x_position):
         self.enemy_dodge_skill = 50
@@ -207,6 +210,30 @@ class Enemy(arcade.Sprite):
                 if self.enemy_health > 0:
                     self.enemy_health -= player_bullet_damage
 
+    def enemy_shoot(self):
+        if self.enemy_health > 0:
+            start_x = self.enemy_sprite.center_x
+            start_y = self.enemy_sprite.bottom
+            dest_x = player.player_sprite.center_x
+            dest_y = player.player_sprite.center_y
+            x_diff = dest_x - start_x
+            y_diff = dest_y - start_y
+            angle = math.atan2(y_diff, x_diff)
+            if player.player_health > 0:
+                if frame_count % 60 == 0:
+                    bullet = Enemy_Bullets(":resources:images/space_shooter/laserBlue01.png")
+                    bullet.center_x = start_x
+                    bullet.center_y = start_y
+                    bullet.angle = math.degrees(angle)
+                    bullet.change_x = math.cos(angle) * BULLET_SPEED
+                    bullet.change_y = math.sin(angle) * BULLET_SPEED
+                    enemy_bullet_list.append(bullet)
+                    bullet.check_enemy_bullet_pos()
+            else:
+                return
+        else:
+            return
+
 class Boss(arcade.Sprite):
     def __init__(self, x_position):
         self.boss_health = 150
@@ -223,7 +250,7 @@ class SpaceInvader(arcade.Window):
     def __init__(self):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
         arcade.set_background_color(arcade.csscolor.BLACK)
-        self.frame_count = 0
+
         self.level = 1
         self.wave = 1
         self.boss_dodge_skill = 175
@@ -242,7 +269,6 @@ class SpaceInvader(arcade.Window):
 
     def setup(self):
         """the initialisation function for starting a new game"""
-        self.player = Player()
         
         self.enemy = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
         self.enemy2 = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
@@ -275,12 +301,14 @@ class SpaceInvader(arcade.Window):
         enemy_bullet_list.draw()
         self.enemy.enemy_health_bar()
         self.enemy2.enemy_health_bar()
-        self.player.player_health_bar()
+        player.player_health_bar()
         self.boss_health_bar()
         arcade.draw_text(f"Level: {self.level}", 20, SCREEN_HEIGHT - 40, arcade.color.WHITE, 20, 180, "left")
         arcade.draw_text(f"Wave: {self.wave}", 20, SCREEN_HEIGHT - 80, arcade.color.WHITE, 20, 180, "left")
         
     def start_new_game(self):
+        global enemy_bullet_damage
+
         if self.wave < 3:
             self.wave += 1 
         else:
@@ -290,7 +318,7 @@ class SpaceInvader(arcade.Window):
             self.enemy.enemy_dodge_skill += 50
             self.boss_dodge_skill += 50
  
-        self.player.player_health = 100
+        player.player_health = 100
 
         if self.level % 5 == 0 and self.wave == 3:
             self.boss = Boss(x_position=random.randint(0, SCREEN_WIDTH))
@@ -323,7 +351,7 @@ class SpaceInvader(arcade.Window):
     
     def check_boss_hit(self):
         for boss in boss_objects:
-            hit_list = arcade.check_for_collision_with_list(boss.boss_sprite, self.player.player_bullet_list)
+            hit_list = arcade.check_for_collision_with_list(boss.boss_sprite, player.player_bullet_list)
             for sprites in hit_list:
                 sprites.remove_from_sprite_lists()
                 if boss.boss_health > 0:
@@ -350,28 +378,6 @@ class SpaceInvader(arcade.Window):
                 if bullet.center_y > boss.boss_sprite.center_y:
                     boss.boss_sprite.change_x = 0
             
-    def enemy_shoot(self):
-            for enemy in enemy_list:
-                start_x = enemy.center_x
-                start_y = enemy.bottom
-                dest_x = self.player.player_sprite.center_x
-                dest_y = self.player.player_sprite.center_y #TODO: was here
-                x_diff = dest_x - start_x
-                y_diff = dest_y - start_y
-                angle = math.atan2(y_diff, x_diff)
-                if self.player.player_health > 0:
-                    if self.frame_count % 60 == 0:
-                        bullet = Enemy_Bullets(":resources:images/space_shooter/laserBlue01.png")
-                        bullet.center_x = start_x
-                        bullet.center_y = start_y
-                        bullet.angle = math.degrees(angle)
-                        bullet.change_x = math.cos(angle) * BULLET_SPEED
-                        bullet.change_y = math.sin(angle) * BULLET_SPEED
-                        enemy_bullet_list.append(bullet)
-                        bullet.check_enemy_bullet_pos()
-                else:
-                    return
-
     def boss_shoot(self):
         for boss in boss_list:
             start_x = boss.center_x
@@ -381,8 +387,8 @@ class SpaceInvader(arcade.Window):
             x_diff = dest_x - start_x
             y_diff = dest_y - start_y
             angle = math.atan2(y_diff, x_diff)
-            if self.player.player_health > 0:
-                if self.frame_count % 60 == 0:
+            if player.player_health > 0:
+                if frame_count % 60 == 0:
                     bullet = Enemy_Bullets(":resources:images/space_shooter/laserBlue01.png")
                     bullet.center_x = start_x
                     bullet.center_y = start_y
@@ -405,17 +411,20 @@ class SpaceInvader(arcade.Window):
                     return
 
     def on_update(self, delta_time):
+        global frame_count
+
         player_list.update()
-        self.frame_count += 1
-        self.enemy_shoot()
+        frame_count += 1
+        self.enemy.enemy_shoot() #TODO: When enemy dies they still shoot, this is because their object still remains, could add the iteration over the enemy list again or figure out another way (try too delete the object when the enemy dies!)
+        self.enemy2.enemy_shoot()
         self.boss_shoot()
         self.star.check_star_pos(delta_time)
-        self.player.check_player_pos()
+        player.check_player_pos()
         player_bullet_list.update()
         enemy_bullet_list.update()
         self.enemy.check_enemy_hit()
         self.enemy2.check_enemy_hit()
-        self.player.check_player_hit()
+        player.check_player_hit()
         self.check_boss_hit()
         self.enemy.move_enemy()
         self.enemy2.move_enemy()
@@ -429,27 +438,28 @@ class SpaceInvader(arcade.Window):
         enemy_list.update()
         boss_list.update()
 
-        if self.player.player_health <= 0:
-            self.player.player_sprite.remove_from_sprite_lists()
+        if player.player_health <= 0:
+            player.player_sprite.remove_from_sprite_lists()
 
         for enemy in enemy_objects:
             if enemy.enemy_health == 0:
                 enemy.enemy_sprite.remove_from_sprite_lists()
+                del enemy
 
     def on_key_press(self, symbol, modifiers):
         """generic event handler for key press"""
-        if symbol == arcade.key.SPACE and self.player.player_health != 0:
-            self.player.handle_shoot()
+        if symbol == arcade.key.SPACE and player.player_health != 0:
+            player.handle_shoot()
 
         if symbol in (arcade.key.UP, arcade.key.DOWN, arcade.key.LEFT, arcade.key.RIGHT):
-            self.player.handle_user_movement(symbol)
+            player.handle_user_movement(symbol)
 
     def on_key_release(self, symbol, modifiers):
         """generic event handler for key release"""
         if symbol == arcade.key.UP or symbol == arcade.key.DOWN:
-            self.player.player_sprite.change_y = 0
+            player.player_sprite.change_y = 0
         elif symbol == arcade.key.LEFT or symbol == arcade.key.RIGHT:
-            self.player.player_sprite.change_x = 0
+            player.player_sprite.change_x = 0
 
 def main():
     """main function where the magic happens"""
