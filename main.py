@@ -238,44 +238,12 @@ class Boss(arcade.Sprite):
     def __init__(self, x_position):
         self.boss_health = 150
         self.stuck = False
+        self.boss_dodge_skill = 175
         boss_image_source = "sprites\\boss-sprite-3.png"
         self.boss_sprite = arcade.Sprite(boss_image_source, CHARACTER_SCALING)
         self.boss_sprite.center_x = x_position
         self.boss_sprite.center_y = SCREEN_HEIGHT - self.boss_sprite.height
         boss_list.append(self.boss_sprite)
-
-class SpaceInvader(arcade.Window):
-    """A class to manage and control our game"""
-
-    def __init__(self):
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-        arcade.set_background_color(arcade.csscolor.BLACK)
-
-        self.level = 1
-        self.wave = 1
-        self.boss_dodge_skill = 175
-
-    def render_stars(self):
-        """renders our star sprite"""
-        for _ in range(50):
-            self.star = Star()
-            self.star.x = random.randrange(SCREEN_WIDTH)
-            self.star.y = random.randrange(SCREEN_HEIGHT + 200)
-            self.star.size = random.randrange(4)
-            self.star.speed = random.randrange(30, 50)
-            star_list.append(self.star)
-
-        self.set_mouse_visible(False)
-
-    def setup(self):
-        """the initialisation function for starting a new game"""
-        
-        self.enemy = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
-        self.enemy2 = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
-
-        enemy_objects.append(self.enemy)
-        enemy_objects.append(self.enemy2)
-
     
     def boss_health_bar(self):
         health_bar_width = 200
@@ -289,74 +257,14 @@ class SpaceInvader(arcade.Window):
                 health_width = health_bar_width * (boss.boss_health / 150)
 
                 arcade.draw_rectangle_filled(bar_x - 0.5 * (health_bar_width - health_width), bar_y - 10, health_width, 3, arcade.color.GREEN)
-                
-    def on_draw(self):
-        self.clear()
-        for star in star_list:
-            arcade.draw_circle_filled(star.x, star.y, star.size, arcade.color.WHITE)
-        player_list.draw()
-        enemy_list.draw()
-        boss_list.draw()
-        player_bullet_list.draw()
-        enemy_bullet_list.draw()
-        self.enemy.enemy_health_bar()
-        self.enemy2.enemy_health_bar()
-        player.player_health_bar()
-        self.boss_health_bar()
-        arcade.draw_text(f"Level: {self.level}", 20, SCREEN_HEIGHT - 40, arcade.color.WHITE, 20, 180, "left")
-        arcade.draw_text(f"Wave: {self.wave}", 20, SCREEN_HEIGHT - 80, arcade.color.WHITE, 20, 180, "left")
-        
-    def start_new_game(self):
-        global enemy_bullet_damage
-
-        if self.wave < 3:
-            self.wave += 1 
-        else:
-            self.level += 1
-            self.wave = 0
-            enemy_bullet_damage += 2
-            self.enemy.enemy_dodge_skill += 50
-            self.boss_dodge_skill += 50
- 
-        player.player_health = 100
-
-        if self.level % 5 == 0 and self.wave == 3:
-            self.boss = Boss(x_position=random.randint(0, SCREEN_WIDTH))
-            boss_objects.append(self.boss)
-            boss_spawned = True
-
-        else:
-            self.enemy = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
-            self.enemy2 = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
-
-        enemy_objects.append(self.enemy)
-        enemy_objects.append(self.enemy2)
-
-    def check_to_move_to_next_lvl(self, boss_spawned):
-        if boss_spawned:
-            for boss in boss_objects:
-                if boss.boss_health <= 0:
-                    boss.boss_sprite.remove_from_sprite_lists()
-                    boss_spawned = False
-                    self.start_new_game()
-
-        else:
-            enemy_death_count = 0
-            for enemy in enemy_objects:
-                if enemy.enemy_health == 0:
-                    enemy_death_count += 1
-            
-            if enemy_death_count == len(enemy_objects):
-                self.start_new_game()
     
     def check_boss_hit(self):
         for boss in boss_objects:
-            hit_list = arcade.check_for_collision_with_list(boss.boss_sprite, player.player_bullet_list)
+            hit_list = arcade.check_for_collision_with_list(boss.boss_sprite, player_bullet_list)
             for sprites in hit_list:
                 sprites.remove_from_sprite_lists()
                 if boss.boss_health > 0:
                     boss.boss_health -= player_bullet_damage
-                    self.check_to_move_to_next_lvl(boss_spawned=boss_spawned)
 
     def move_boss(self):
         for boss in boss_objects:
@@ -377,13 +285,13 @@ class SpaceInvader(arcade.Window):
 
                 if bullet.center_y > boss.boss_sprite.center_y:
                     boss.boss_sprite.change_x = 0
-            
+    
     def boss_shoot(self):
         for boss in boss_list:
             start_x = boss.center_x
             start_y = boss.bottom
-            dest_x = self.player_sprite.center_x
-            dest_y = self.player_sprite.center_y
+            dest_x = player.player_sprite.center_x
+            dest_y = player.player_sprite.center_y
             x_diff = dest_x - start_x
             y_diff = dest_y - start_y
             angle = math.atan2(y_diff, x_diff)
@@ -405,19 +313,118 @@ class SpaceInvader(arcade.Window):
 
                     enemy_bullet_list.append(bullet)
                     enemy_bullet_list.append(bullet2)
-                    self.check_enemy_bullet_pos()
+                    
+                    bullet.check_enemy_bullet_pos()
 
                 else:
                     return
 
+class SpaceInvader(arcade.Window):
+    """A class to manage and control our game"""
+
+    def __init__(self):
+        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        arcade.set_background_color(arcade.csscolor.BLACK)
+
+        self.level = 1
+        self.wave = 1
+
+    def render_stars(self):
+        """renders our star sprite"""
+        for _ in range(50):
+            self.star = Star()
+            self.star.x = random.randrange(SCREEN_WIDTH)
+            self.star.y = random.randrange(SCREEN_HEIGHT + 200)
+            self.star.size = random.randrange(4)
+            self.star.speed = random.randrange(30, 50)
+            star_list.append(self.star)
+
+        self.set_mouse_visible(False)
+
+    def setup(self):
+        """the initialisation function for starting a new game"""
+        
+        self.enemy = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
+        self.enemy2 = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
+
+        enemy_objects.append(self.enemy)
+        enemy_objects.append(self.enemy2)
+            
+    def on_draw(self):
+        global boss_spawned
+
+        self.clear()
+        for star in star_list:
+            arcade.draw_circle_filled(star.x, star.y, star.size, arcade.color.WHITE)
+        player_list.draw()
+        enemy_list.draw()
+        boss_list.draw()
+        player_bullet_list.draw()
+        enemy_bullet_list.draw()
+        self.enemy.enemy_health_bar()
+        self.enemy2.enemy_health_bar()
+
+        if boss_spawned:
+            self.boss.boss_health_bar()
+
+        player.player_health_bar()
+        arcade.draw_text(f"Level: {self.level}", 20, SCREEN_HEIGHT - 40, arcade.color.WHITE, 20, 180, "left")
+        arcade.draw_text(f"Wave: {self.wave}", 20, SCREEN_HEIGHT - 80, arcade.color.WHITE, 20, 180, "left")
+        
+    def start_new_game(self):
+        global enemy_bullet_damage
+        global boss_spawned
+
+        if self.wave < 3:
+            self.wave += 1 
+
+        else:
+            self.level += 1
+            self.wave = 0
+            enemy_bullet_damage += 2
+            self.enemy.enemy_dodge_skill += 50
+            self.boss_dodge_skill += 50
+ 
+        player.player_health = 100
+
+        if self.level % 5 == 0 and self.wave == 3:
+            self.boss = Boss(x_position=random.randint(0, SCREEN_WIDTH))
+            boss_objects.append(self.boss)
+            boss_spawned = True
+
+        else:
+            self.enemy = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
+            self.enemy2 = Enemy(x_position=random.randint(0, SCREEN_WIDTH))
+
+            enemy_objects.append(self.enemy)
+            enemy_objects.append(self.enemy2)
+
+    def check_to_move_to_next_lvl(self):
+        global boss_spawned
+
+        if boss_spawned:
+            for boss in boss_objects:
+                if boss.boss_health <= 0:
+                    boss.boss_sprite.remove_from_sprite_lists()
+                    boss_spawned = False
+                    self.start_new_game()
+
+        else:
+            enemy_death_count = 0
+            for enemy in enemy_objects:
+                if enemy.enemy_health == 0:
+                    enemy_death_count += 1
+            
+            if enemy_death_count == len(enemy_objects):
+                self.start_new_game()
+                    
     def on_update(self, delta_time):
         global frame_count
 
         player_list.update()
         frame_count += 1
-        self.enemy.enemy_shoot() #TODO: When enemy dies they still shoot, this is because their object still remains, could add the iteration over the enemy list again or figure out another way (try too delete the object when the enemy dies!)
+        self.enemy.enemy_shoot()
         self.enemy2.enemy_shoot()
-        self.boss_shoot()
         self.star.check_star_pos(delta_time)
         player.check_player_pos()
         player_bullet_list.update()
@@ -425,15 +432,15 @@ class SpaceInvader(arcade.Window):
         self.enemy.check_enemy_hit()
         self.enemy2.check_enemy_hit()
         player.check_player_hit()
-        self.check_boss_hit()
         self.enemy.move_enemy()
         self.enemy2.move_enemy()
 
-        self.check_to_move_to_next_lvl(boss_spawned=boss_spawned)
+        self.check_to_move_to_next_lvl()
 
         if boss_spawned:
-            self.move_boss()
-            self.boss_health_bar()
+            self.boss.move_boss()
+            self.boss.boss_shoot()
+            self.boss.check_boss_hit()
 
         enemy_list.update()
         boss_list.update()
